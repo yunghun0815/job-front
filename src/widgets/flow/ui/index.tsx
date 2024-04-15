@@ -1,73 +1,79 @@
-import { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import ReactFlow, {
   addEdge,
-  FitViewOptions,
-  applyNodeChanges,
-  applyEdgeChanges,
-  Node,
-  Edge,
-  OnNodesChange,
-  OnEdgesChange,
-  OnConnect,
-  DefaultEdgeOptions,
-  NodeTypes
+  MiniMap,
+  Controls,
+  Background,
+  useNodesState,
+  useEdgesState,
 } from 'reactflow';
 
-import { CustomNode } from './CustomNode';
+import { nodes as initialNodes, edges as initialEdges } from '../model/index.tsx';
+import CustomNode from './CustomNode2.tsx';
 
 import 'reactflow/dist/style.css';
 
-const initialNodes: Node[] = [
-  { id: '1', data: { label: 'Node 1' }, position: { x: 5, y: 5 } },
-  { id: '2', data: { label: 'Node 2' }, position: { x: 5, y: 100 } },
-];
- 
-const initialEdges: Edge[] = [{ id: 'e1-2', source: '1', target: '2' }];
- 
-const fitViewOptions: FitViewOptions = {
-  padding: 0.2,
-};
- 
-const defaultEdgeOptions: DefaultEdgeOptions = {
-  animated: true,
-};
- 
-const nodeTypes: NodeTypes = {
+const nodeTypes = {
   custom: CustomNode,
 };
 
+const minimapStyle = {
+  height: 120,
+};
+
+const onInit = (reactFlowInstance : any) => console.log('flow loaded:', reactFlowInstance);
+
 export const Flow = () => {
-  const [nodes, setNodes] = useState<Node[]>(initialNodes);
-  const [edges, setEdges] = useState<Edge[]>(initialEdges);
- 
-  const onNodesChange: OnNodesChange = useCallback(
-    (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
-    [setNodes],
-  );
-  const onEdgesChange: OnEdgesChange = useCallback(
-    (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
-    [setEdges],
-  );
-  const onConnect: OnConnect = useCallback(
-    (connection) => setEdges((eds) => addEdge(connection, eds)),
-    [setEdges],
-  );
- 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const onConnect = useCallback((params : any) => setEdges((eds) => addEdge(params, eds)), []);
+
+  // we are using a bit of a shortcut here to adjust the edge type
+  // this could also be done with a custom edge for example
+  const edgesWithUpdatedTypes = edges.map((edge) => {
+    if (edge.sourceHandle) {
+      const edgeType = nodes.find((node) => node?.type === 'custom')?.data.selects[edge.sourceHandle];
+      edge.type = edgeType;
+    }
+
+    return edge;
+  });
+
+  const addNode = useCallback(() => {
+    setNodes((nds) => {
+      return [
+        ...nds,
+        {
+          id: `dndnode-${nds.length}`,
+          type: 'output',
+          position: { x: Math.random() * 500, y: Math.random() * 500 },
+          data: {
+            label: `hello`,
+          },
+        },
+      ];
+    })  
+  }, []);
+
   return (
-    <>
-      <div style={{ width: '100vw', height: '100vh' }}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          fitView
-          fitViewOptions={fitViewOptions}
-          defaultEdgeOptions={defaultEdgeOptions}
-          nodeTypes={nodeTypes}
-        />
-      </div>
-    </>
+    <div style={{ width: '100vw', height: '80vh' }}>
+      <ReactFlow
+        nodes={nodes}
+        edges={edgesWithUpdatedTypes}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        onInit={onInit}
+        fitView
+        nodeTypes={nodeTypes}
+        deleteKeyCode={"Delete"}
+      >
+        <MiniMap style={minimapStyle} zoomable pannable />
+        <Controls />
+        <Background color="#aaa" gap={16} />
+      </ReactFlow>
+      <button onClick={addNode}>추가</button>
+    </div>
   );
-}
+};
