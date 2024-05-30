@@ -1,12 +1,10 @@
-import Header from './header';
-import { Flow } from '../widgets/flow';
+import { AppRouter } from './routers';
 
 const App = () => {
 
   return (
     <>
-      <Header />
-      <Flow />
+        <AppRouter />
     </>
   )
 }

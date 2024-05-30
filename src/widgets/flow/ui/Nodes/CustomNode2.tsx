@@ -61,7 +61,7 @@ function Select({ value, handleId, nodeId } : any) {
 function CustomNode({ id, data } : any) {
   return (
     <>
-      <div className="custom-node__header">
+      <div className="custom-node__header" >
         This is a <strong>custom node</strong>
       </div>
       <div className="custom-node__body">

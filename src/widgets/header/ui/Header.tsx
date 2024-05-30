@@ -6,10 +6,10 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 
-const Header = () => {
+export const Header = () => {
     return (
-        <Box sx={{ flexGrow: 1 }}>
-            <AppBar position="static">
+        <Box>
+            <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
                 <Toolbar>
                 <IconButton
                     size="large"
@@ -29,5 +29,3 @@ const Header = () => {
         </Box>
     )
 }
-
-export default Header;
